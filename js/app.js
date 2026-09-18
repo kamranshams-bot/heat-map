@@ -8,6 +8,7 @@
 
   const state = {
     view: "all", // "all" | sector id
+    stock: null, // symbol of the stock drilled into, within the current sector
     table: false,
     liveSymbols: new Set(), // symbols currently showing a live quote
     lastLiveAt: null,
@@ -39,54 +40,6 @@
     return `${sign}${pct.toFixed(1)}%`;
   }
 
-  // -------------------------------------------------------- stock modal --
-  let modalReturnFocus = null;
-
-  function openStockModal(stock, sectorName, sectorId) {
-    const overlay = document.getElementById("stock-modal-overlay");
-    const body = document.getElementById("stock-modal-body");
-    const up = stock.changePct >= 0;
-    const live = state.liveSymbols.has(stock.symbol);
-
-    body.innerHTML = `
-      <div class="modal-eyebrow">${sectorName}</div>
-      <h2 id="stock-modal-title" class="modal-title">${stock.symbol}</h2>
-      <div class="modal-sub">${stock.name}</div>
-      <div class="modal-change ${up ? "up" : "down"}">${fmtPct(stock.changePct)}</div>
-      <dl class="modal-stats">
-        <div>
-          <dt>Weight in sector</dt>
-          <dd>${stock.weight.toFixed(1)}%</dd>
-        </div>
-        <div>
-          <dt>Data source</dt>
-          <dd>${live ? "Live" : "Sample"}</dd>
-        </div>
-      </dl>
-      <button class="icon-btn modal-view-sector" id="modal-view-sector">
-        View ${sectorName} sector
-      </button>
-    `;
-
-    document.getElementById("modal-view-sector").addEventListener("click", () => {
-      state.view = sectorId;
-      closeStockModal();
-      render();
-    });
-
-    modalReturnFocus = document.activeElement;
-    overlay.classList.remove("hidden");
-    document.getElementById("modal-close-btn").focus();
-  }
-
-  function closeStockModal() {
-    document.getElementById("stock-modal-overlay").classList.add("hidden");
-    if (modalReturnFocus && typeof modalReturnFocus.focus === "function") {
-      modalReturnFocus.focus();
-    }
-    modalReturnFocus = null;
-  }
-
   // --------------------------------------------------------------- layout --
   function currentMaxAbs(items) {
     const max = Math.max(...items.map((d) => Math.abs(d.changePct)));
@@ -114,13 +67,29 @@
       return;
     }
     const sector = workingSectors.find((s) => s.id === state.view);
-    el.innerHTML = `
-      <button class="crumb link" data-action="up">All sectors</button>
+    const stock = state.stock && sector.stocks.find((s) => s.symbol === state.stock);
+
+    el.innerHTML = stock
+      ? `
+      <button class="crumb link" data-action="all">All sectors</button>
+      <span class="crumb-sep">/</span>
+      <button class="crumb link" data-action="sector">${sector.name}</button>
+      <span class="crumb-sep">/</span>
+      <span class="crumb current">${stock.symbol}</span>
+    `
+      : `
+      <button class="crumb link" data-action="all">All sectors</button>
       <span class="crumb-sep">/</span>
       <span class="crumb current">${sector.name}</span>
     `;
-    el.querySelector('[data-action="up"]').addEventListener("click", () => {
+
+    el.querySelector('[data-action="all"]').addEventListener("click", () => {
       state.view = "all";
+      state.stock = null;
+      render();
+    });
+    el.querySelector('[data-action="sector"]')?.addEventListener("click", () => {
+      state.stock = null;
       render();
     });
   }
@@ -343,7 +312,11 @@
             ${showName ? `<div class="cell-sub">${stock.name}</div>` : ""}
             <div class="cell-change">${fmtPct(stock.changePct)}</div>
           `;
-        const openDetail = () => openStockModal(stock, sector.name, sector.id);
+        const openDetail = () => {
+          state.view = sector.id;
+          state.stock = stock.symbol;
+          render();
+        };
         cell.addEventListener("click", openDetail);
         cell.addEventListener("keydown", (e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -358,6 +331,35 @@
     });
   }
 
+  function renderStockDetail(container, sector, stock) {
+    document.getElementById("legend").innerHTML = "";
+    const up = stock.changePct >= 0;
+    const live = state.liveSymbols.has(stock.symbol);
+    container.innerHTML = `
+      <div class="stock-detail">
+        <div class="stock-detail-eyebrow">${sector.name}</div>
+        <div class="stock-detail-symbol">${stock.symbol}</div>
+        <div class="stock-detail-name">${stock.name}</div>
+        <div class="stock-detail-change ${up ? "up" : "down"}">${fmtPct(stock.changePct)}</div>
+        <dl class="stock-detail-stats">
+          <div>
+            <dt>Weight in sector</dt>
+            <dd>${stock.weight.toFixed(1)}%</dd>
+          </div>
+          <div>
+            <dt>Data source</dt>
+            <dd>${live ? "Live" : "Sample"}</dd>
+          </div>
+        </dl>
+        <button class="icon-btn" id="stock-detail-back">Back to ${sector.name}</button>
+      </div>
+    `;
+    document.getElementById("stock-detail-back").addEventListener("click", () => {
+      state.stock = null;
+      render();
+    });
+  }
+
   function renderHeatmap() {
     const container = document.getElementById("heatmap");
     container.classList.remove("hidden");
@@ -366,16 +368,26 @@
 
     if (state.view === "all") {
       renderGroupedHeatmap(container);
-    } else {
-      const sector = workingSectors.find((s) => s.id === state.view);
-      layoutAndRender(
-        container,
-        sector.stocks,
-        "weight",
-        (stock) => openStockModal(stock, sector.name, sector.id),
-        false
-      );
+      return;
     }
+
+    const sector = workingSectors.find((s) => s.id === state.view);
+    const stock = state.stock && sector.stocks.find((s) => s.symbol === state.stock);
+    if (stock) {
+      renderStockDetail(container, sector, stock);
+      return;
+    }
+
+    layoutAndRender(
+      container,
+      sector.stocks,
+      "weight",
+      (item) => {
+        state.stock = item.symbol;
+        render();
+      },
+      false
+    );
   }
 
   function flatRows() {
@@ -633,16 +645,6 @@
 
   function wireControls() {
     document.getElementById("refresh-btn").addEventListener("click", refreshLive);
-
-    document.getElementById("modal-close-btn").addEventListener("click", closeStockModal);
-    document.getElementById("stock-modal-overlay").addEventListener("click", (e) => {
-      if (e.target.id === "stock-modal-overlay") closeStockModal();
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !document.getElementById("stock-modal-overlay").classList.contains("hidden")) {
-        closeStockModal();
-      }
-    });
 
     document.getElementById("view-toggle").addEventListener("click", (e) => {
       const btn = e.target.closest("button[data-view]");
