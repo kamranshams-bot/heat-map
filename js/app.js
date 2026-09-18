@@ -295,6 +295,13 @@
             ${showName ? `<div class="cell-sub">${stock.name}</div>` : ""}
             <div class="cell-change">${fmtPct(stock.changePct)}</div>
           `;
+        cell.addEventListener("click", goToSector);
+        cell.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            goToSector();
+          }
+        });
         body.appendChild(cell);
       });
 
