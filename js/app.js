@@ -153,22 +153,153 @@
     });
   }
 
+  function stockCellNode(stock, sectorName) {
+    const div = document.createElement("div");
+    div.className = "cell";
+    div.tabIndex = 0;
+    div.setAttribute("role", "button");
+    const live = state.liveSymbols.has(stock.symbol);
+    div.setAttribute(
+      "aria-label",
+      `${stock.symbol}, ${sectorName}, ${fmtPct(stock.changePct)}${live ? ", live" : ", sample data"}`
+    );
+    div.title = `${stock.name} (${stock.symbol}) — ${fmtPct(stock.changePct)}${
+      live ? " (live)" : " (sample data)"
+    } · ${sectorName}`;
+    return div;
+  }
+
+  // "All sectors" view: every sector is a labeled region containing all of
+  // its own stock tiles (Finviz-style grouped treemap), so gainers/losers
+  // are visible at a glance without drilling in. A sector whose region ends
+  // up too small to hold readable stock tiles falls back to a single
+  // sector-level tile (click it to open the full single-sector view).
+  function renderGroupedHeatmap(container) {
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    const padding = 2;
+    const headerHeight = 24;
+
+    const allStocks = workingSectors.flatMap((s) => s.stocks);
+    const maxAbs = currentMaxAbs(allStocks);
+    renderLegend(maxAbs);
+
+    const sectorLeaves = squarify(workingSectors, 0, 0, width, height);
+
+    container.innerHTML = "";
+    sectorLeaves.forEach((leaf) => {
+      const sector = leaf.item;
+      const w = Math.max(0, leaf.x1 - leaf.x0 - padding);
+      const h = Math.max(0, leaf.y1 - leaf.y0 - padding);
+      const canShowStocks = w > 90 && h > 70 && sector.stocks.length > 0;
+
+      const goToSector = () => {
+        state.view = sector.id;
+        render();
+      };
+
+      if (!canShowStocks) {
+        const bg = colorFor(sector.changePct, maxAbs);
+        const fg = textColorFor(bg);
+        const cell = cellNode(sector, true);
+        cell.style.left = `${leaf.x0}px`;
+        cell.style.top = `${leaf.y0}px`;
+        cell.style.width = `${w}px`;
+        cell.style.height = `${h}px`;
+        cell.style.background = bg;
+        cell.style.color = fg;
+        cell.innerHTML =
+          w > 70 && h > 34
+            ? `
+          <div class="cell-symbol">${sector.name}</div>
+          <div class="cell-sub">${sector.etf} · wt ${sector.weight.toFixed(1)}%</div>
+          <div class="cell-change">${fmtPct(sector.changePct)}</div>`
+            : `<div class="cell-change small">${fmtPct(sector.changePct)}</div>`;
+        cell.title = `${sector.name} — ${fmtPct(sector.changePct)} (sector average)`;
+        cell.addEventListener("click", goToSector);
+        cell.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            goToSector();
+          }
+        });
+        container.appendChild(cell);
+        return;
+      }
+
+      const group = document.createElement("div");
+      group.className = "sector-group";
+      group.style.left = `${leaf.x0}px`;
+      group.style.top = `${leaf.y0}px`;
+      group.style.width = `${w}px`;
+      group.style.height = `${h}px`;
+
+      const up = sector.changePct >= 0;
+      const header = document.createElement("div");
+      header.className = "sector-header";
+      header.tabIndex = 0;
+      header.setAttribute("role", "button");
+      header.setAttribute(
+        "aria-label",
+        `Open ${sector.name} sector, ${fmtPct(sector.changePct)} average`
+      );
+      header.title = `Open ${sector.name} (${sector.etf})`;
+      header.innerHTML = `
+        <span class="sector-header-name">${sector.name}</span>
+        <span class="sector-header-change ${up ? "up" : "down"}">${fmtPct(sector.changePct)}</span>
+      `;
+      header.addEventListener("click", goToSector);
+      header.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          goToSector();
+        }
+      });
+      group.appendChild(header);
+
+      const body = document.createElement("div");
+      body.className = "sector-body";
+      group.appendChild(body);
+
+      const stockLeaves = squarify(sector.stocks, 0, 0, w, Math.max(0, h - headerHeight));
+      stockLeaves.forEach((sleaf) => {
+        const stock = sleaf.item;
+        const sw = Math.max(0, sleaf.x1 - sleaf.x0 - padding);
+        const sh = Math.max(0, sleaf.y1 - sleaf.y0 - padding);
+        const bg = colorFor(stock.changePct, maxAbs);
+        const fg = textColorFor(bg);
+        const cell = stockCellNode(stock, sector.name);
+        cell.style.left = `${sleaf.x0}px`;
+        cell.style.top = `${sleaf.y0}px`;
+        cell.style.width = `${sw}px`;
+        cell.style.height = `${sh}px`;
+        cell.style.background = bg;
+        cell.style.color = fg;
+
+        const showName = sw > 70 && sh > 34;
+        const showTicker = sw > 34 && sh > 18;
+        cell.innerHTML = !showTicker
+          ? `<div class="cell-change small">${fmtPct(stock.changePct)}</div>`
+          : `
+            <div class="cell-symbol">${stock.symbol}</div>
+            ${showName ? `<div class="cell-sub">${stock.name}</div>` : ""}
+            <div class="cell-change">${fmtPct(stock.changePct)}</div>
+          `;
+        body.appendChild(cell);
+      });
+
+      container.appendChild(group);
+    });
+  }
+
   function renderHeatmap() {
     const container = document.getElementById("heatmap");
     container.classList.remove("hidden");
+    container.classList.toggle("grouped", state.view === "all");
     document.getElementById("table-wrap").classList.add("hidden");
 
     if (state.view === "all") {
-      layoutAndRender(
-        container,
-        workingSectors,
-        "weight",
-        (sector) => {
-          state.view = sector.id;
-          render();
-        },
-        true
-      );
+      renderGroupedHeatmap(container);
     } else {
       const sector = workingSectors.find((s) => s.id === state.view);
       layoutAndRender(container, sector.stocks, "weight", null, false);
