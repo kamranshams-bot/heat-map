@@ -641,3 +641,119 @@ footer {
     height: 620px;
   }
 }
+
+/* ---- stock detail modal ---- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 6, 10, 0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 100;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface-1);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px 22px 22px;
+  box-shadow: 0 0 0 1px var(--accent-glow), 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.modal-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.modal-title {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 700;
+  margin: 4px 0 0;
+  color: var(--text-primary);
+}
+
+.modal-sub {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.modal-change {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 14px;
+}
+
+.modal-change.up {
+  color: var(--up);
+}
+.modal-change.down {
+  color: var(--down);
+}
+
+.modal-stats {
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--gridline);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.modal-stats dt {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.modal-stats dd {
+  margin: 2px 0 0;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-view-sector {
+  margin-top: 18px;
+  width: 100%;
+  text-align: center;
+}

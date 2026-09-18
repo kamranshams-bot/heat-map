@@ -39,6 +39,54 @@
     return `${sign}${pct.toFixed(1)}%`;
   }
 
+  // -------------------------------------------------------- stock modal --
+  let modalReturnFocus = null;
+
+  function openStockModal(stock, sectorName, sectorId) {
+    const overlay = document.getElementById("stock-modal-overlay");
+    const body = document.getElementById("stock-modal-body");
+    const up = stock.changePct >= 0;
+    const live = state.liveSymbols.has(stock.symbol);
+
+    body.innerHTML = `
+      <div class="modal-eyebrow">${sectorName}</div>
+      <h2 id="stock-modal-title" class="modal-title">${stock.symbol}</h2>
+      <div class="modal-sub">${stock.name}</div>
+      <div class="modal-change ${up ? "up" : "down"}">${fmtPct(stock.changePct)}</div>
+      <dl class="modal-stats">
+        <div>
+          <dt>Weight in sector</dt>
+          <dd>${stock.weight.toFixed(1)}%</dd>
+        </div>
+        <div>
+          <dt>Data source</dt>
+          <dd>${live ? "Live" : "Sample"}</dd>
+        </div>
+      </dl>
+      <button class="icon-btn modal-view-sector" id="modal-view-sector">
+        View ${sectorName} sector
+      </button>
+    `;
+
+    document.getElementById("modal-view-sector").addEventListener("click", () => {
+      state.view = sectorId;
+      closeStockModal();
+      render();
+    });
+
+    modalReturnFocus = document.activeElement;
+    overlay.classList.remove("hidden");
+    document.getElementById("modal-close-btn").focus();
+  }
+
+  function closeStockModal() {
+    document.getElementById("stock-modal-overlay").classList.add("hidden");
+    if (modalReturnFocus && typeof modalReturnFocus.focus === "function") {
+      modalReturnFocus.focus();
+    }
+    modalReturnFocus = null;
+  }
+
   // --------------------------------------------------------------- layout --
   function currentMaxAbs(items) {
     const max = Math.max(...items.map((d) => Math.abs(d.changePct)));
@@ -295,11 +343,12 @@
             ${showName ? `<div class="cell-sub">${stock.name}</div>` : ""}
             <div class="cell-change">${fmtPct(stock.changePct)}</div>
           `;
-        cell.addEventListener("click", goToSector);
+        const openDetail = () => openStockModal(stock, sector.name, sector.id);
+        cell.addEventListener("click", openDetail);
         cell.addEventListener("keydown", (e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            goToSector();
+            openDetail();
           }
         });
         body.appendChild(cell);
@@ -319,7 +368,13 @@
       renderGroupedHeatmap(container);
     } else {
       const sector = workingSectors.find((s) => s.id === state.view);
-      layoutAndRender(container, sector.stocks, "weight", null, false);
+      layoutAndRender(
+        container,
+        sector.stocks,
+        "weight",
+        (stock) => openStockModal(stock, sector.name, sector.id),
+        false
+      );
     }
   }
 
@@ -578,6 +633,16 @@
 
   function wireControls() {
     document.getElementById("refresh-btn").addEventListener("click", refreshLive);
+
+    document.getElementById("modal-close-btn").addEventListener("click", closeStockModal);
+    document.getElementById("stock-modal-overlay").addEventListener("click", (e) => {
+      if (e.target.id === "stock-modal-overlay") closeStockModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !document.getElementById("stock-modal-overlay").classList.contains("hidden")) {
+        closeStockModal();
+      }
+    });
 
     document.getElementById("view-toggle").addEventListener("click", (e) => {
       const btn = e.target.closest("button[data-view]");

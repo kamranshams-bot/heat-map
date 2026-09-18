@@ -52,6 +52,13 @@
     <div id="table-wrap" class="hidden"></div>
   </main>
 
+  <div id="stock-modal-overlay" class="modal-overlay hidden">
+    <div id="stock-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="stock-modal-title">
+      <button id="modal-close-btn" class="modal-close" aria-label="Close">&times;</button>
+      <div id="stock-modal-body"></div>
+    </div>
+  </div>
+
   <footer>
     Data sources: sample snapshot bundled in <code>js/data.js</code>; optional
     live end-of-day quotes via Stooq, fetched client-side. See README for
