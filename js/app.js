@@ -298,14 +298,69 @@
       })
       .join("");
 
+  }
+
+  function allStocksFlat() {
+    return workingSectors.flatMap((sector) =>
+      sector.stocks.map((st) => ({
+        ...st,
+        sectorId: sector.id,
+        sectorName: sector.name,
+      }))
+    );
+  }
+
+  function moverRow(stock) {
+    const up = stock.changePct >= 0;
+    const live = state.liveSymbols.has(stock.symbol);
+    return `
+      <li class="mover-row" data-sector="${stock.sectorId}" tabindex="0" role="button"
+          title="Jump to ${stock.sectorName}">
+        <span class="mover-id">
+          <span class="mover-symbol">${stock.symbol}${live ? '<span class="live-dot" title="Live">●</span>' : ""}</span>
+          <span class="mover-sector">${stock.sectorName}</span>
+        </span>
+        <span class="mover-change ${up ? "up" : "down"}">${fmtPct(stock.changePct)}</span>
+      </li>`;
+  }
+
+  function renderMoversRow() {
+    const el = document.getElementById("movers-row");
     const advancing = workingSectors.filter((s) => s.changePct > 0).length;
-    document.getElementById("breadth-tile").innerHTML = `
+
+    const all = allStocksFlat();
+    const gainers = [...all].sort((a, b) => b.changePct - a.changePct).slice(0, 5);
+    const losers = [...all].sort((a, b) => a.changePct - b.changePct).slice(0, 5);
+
+    el.innerHTML = `
       <div class="stat-tile">
         <div class="stat-label">Sector breadth</div>
         <div class="stat-value">${advancing} / ${workingSectors.length}</div>
         <div class="stat-delta ${advancing >= workingSectors.length / 2 ? "up" : "down"}">sectors advancing</div>
       </div>
+      <div class="stat-tile mover-tile">
+        <div class="stat-label">Top gainers</div>
+        <ul class="mover-list">${gainers.map(moverRow).join("")}</ul>
+      </div>
+      <div class="stat-tile mover-tile">
+        <div class="stat-label">Top losers</div>
+        <ul class="mover-list">${losers.map(moverRow).join("")}</ul>
+      </div>
     `;
+
+    el.querySelectorAll(".mover-row").forEach((row) => {
+      const jump = () => {
+        state.view = row.dataset.sector;
+        render();
+      };
+      row.addEventListener("click", jump);
+      row.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          jump();
+        }
+      });
+    });
   }
 
   // ------------------------------------------------------------- controls --
@@ -414,6 +469,7 @@
   function render() {
     renderBreadcrumbs();
     renderIndexTiles();
+    renderMoversRow();
     renderDataBadge(state.liveSymbols.size > 0 ? "ok" : "idle");
     if (state.table) {
       renderTable();

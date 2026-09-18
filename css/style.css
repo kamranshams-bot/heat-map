@@ -97,6 +97,17 @@ main {
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
   margin-bottom: 20px;
+  align-items: start;
+}
+
+.movers-row {
+  grid-template-columns: minmax(160px, 1fr) minmax(200px, 1.4fr) minmax(200px, 1.4fr);
+}
+
+@media (max-width: 720px) {
+  .movers-row {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
 }
 
 .stat-tile {
@@ -144,6 +155,69 @@ main {
   height: 28px;
   margin-top: 6px;
   display: block;
+}
+
+.mover-tile {
+  padding-bottom: 6px;
+}
+
+.mover-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+
+.mover-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px;
+  margin: 0 -6px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.mover-row:hover,
+.mover-row:focus-visible {
+  background: var(--gridline);
+  outline: none;
+}
+
+.mover-id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mover-symbol {
+  font-weight: 700;
+  font-size: 12.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mover-sector {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mover-change {
+  font-weight: 700;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.mover-change.up {
+  color: var(--up);
+}
+.mover-change.down {
+  color: var(--down);
 }
 
 /* ---- toolbar ---- */
