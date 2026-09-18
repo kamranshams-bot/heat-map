@@ -117,8 +117,11 @@
 
       const showName = w > 70 && h > 34;
       const showTicker = w > 40 && h > 20;
+      const canLabel = w > 44 && h > 16;
       const label = isSector ? item.name : item.symbol;
-      if (!showTicker) {
+      if (!canLabel) {
+        cell.innerHTML = "";
+      } else if (!showTicker) {
         cell.innerHTML = `<div class="cell-change small">${fmtPct(item.changePct)}</div>`;
       } else if (isSector) {
         cell.innerHTML = `
@@ -191,7 +194,7 @@
       const sector = leaf.item;
       const w = Math.max(0, leaf.x1 - leaf.x0 - padding);
       const h = Math.max(0, leaf.y1 - leaf.y0 - padding);
-      const canShowStocks = w > 90 && h > 70 && sector.stocks.length > 0;
+      const canShowStocks = w > 100 && h > 78 && sector.stocks.length > 0;
 
       const goToSector = () => {
         state.view = sector.id;
@@ -276,11 +279,18 @@
         cell.style.background = bg;
         cell.style.color = fg;
 
-        const showName = sw > 70 && sh > 34;
-        const showTicker = sw > 34 && sh > 18;
-        cell.innerHTML = !showTicker
-          ? `<div class="cell-change small">${fmtPct(stock.changePct)}</div>`
-          : `
+        const showName = sw > 74 && sh > 36;
+        const showTicker = sw > 38 && sh > 22;
+        // Below this, even the compact "-3.1%" label would overflow its own
+        // cell (a common squarify pitfall for the smallest slice in a tight
+        // region) — leave it color-only rather than clip the text; the
+        // value is still reachable via the tooltip and aria-label.
+        const canLabel = sw > 44 && sh > 16;
+        cell.innerHTML = !canLabel
+          ? ""
+          : !showTicker
+            ? `<div class="cell-change small">${fmtPct(stock.changePct)}</div>`
+            : `
             <div class="cell-symbol">${stock.symbol}</div>
             ${showName ? `<div class="cell-sub">${stock.name}</div>` : ""}
             <div class="cell-change">${fmtPct(stock.changePct)}</div>
