@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>USA Market Sector Heat Map</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header>
+    <div class="title-row">
+      <div>
+        <h1>USA Market Sector Heat Map</h1>
+        <p class="subtitle">S&amp;P 500 sectors sized by index weight, colored by price change</p>
+      </div>
+      <div class="toolbar-right">
+        <span id="data-badge" class="data-badge sample">Sample data</span>
+        <button id="refresh-btn" class="icon-btn">Refresh live data</button>
+        <button id="theme-toggle" class="icon-btn" title="Toggle light/dark">Theme</button>
+      </div>
+    </div>
+    <p class="disclaimer">
+      Not financial advice. Sector and constituent weights are approximate and
+      hand-set for illustration, not sourced from a live index provider.
+      "Live data" (when available) is delayed end-of-day data from a free,
+      best-effort source and can fail to load depending on your network —
+      verify anything here against a licensed data feed before you trade.
+    </p>
+  </header>
+
+  <main>
+    <section class="tiles-row" id="index-tiles" aria-label="Broad market movement"></section>
+    <section class="tiles-row" id="breadth-tile" aria-label="Sector breadth"></section>
+
+    <div class="toolbar">
+      <nav id="breadcrumbs" aria-label="Drill-down breadcrumbs"></nav>
+      <div id="view-toggle" role="group" aria-label="Heatmap or table view">
+        <button data-view="heatmap" class="active">Heat map</button>
+        <button data-view="table">Table</button>
+      </div>
+    </div>
+
+    <div id="legend" aria-hidden="true"></div>
+
+    <div id="heatmap" role="grid" aria-label="Sector heat map"></div>
+    <div id="table-wrap" class="hidden"></div>
+  </main>
+
+  <footer>
+    Data sources: sample snapshot bundled in <code>js/data.js</code>; optional
+    live end-of-day quotes via Stooq, fetched client-side. See README for
+    details and how to plug in a paid real-time provider.
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/viz-utils.js"></script>
+  <script src="js/live.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

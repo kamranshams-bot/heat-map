@@ -1,0 +1,380 @@
+:root {
+  color-scheme: light;
+  --surface-1: #fcfcfb;
+  --page: #f9f9f7;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #898781;
+  --gridline: #e1e0d9;
+  --border: rgba(11, 11, 11, 0.1);
+  --up: #006300;
+  --down: #d03b3b;
+  --accent: #2a78d6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --surface-1: #1a1a19;
+    --page: #0d0d0d;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+    --gridline: #2c2c2a;
+    --border: rgba(255, 255, 255, 0.1);
+    --up: #0ca30c;
+    --down: #e66767;
+    --accent: #3987e5;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-1: #1a1a19;
+  --page: #0d0d0d;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #898781;
+  --gridline: #2c2c2a;
+  --border: rgba(255, 255, 255, 0.1);
+  --up: #0ca30c;
+  --down: #e66767;
+  --accent: #3987e5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--text-primary);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+header {
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid var(--gridline);
+  background: var(--surface-1);
+}
+
+.title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+
+.disclaimer {
+  color: var(--text-muted);
+  font-size: 11.5px;
+  margin: 8px 0 0;
+  max-width: 70ch;
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 24px 48px;
+}
+
+/* ---- stat tiles ---- */
+.tiles-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-tile {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  position: relative;
+}
+
+.stat-label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.live-dot {
+  color: var(--up);
+  font-size: 8px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.stat-delta {
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.stat-delta.up {
+  color: var(--up);
+}
+.stat-delta.down {
+  color: var(--down);
+}
+
+.sparkline {
+  width: 100%;
+  height: 28px;
+  margin-top: 6px;
+  display: block;
+}
+
+/* ---- toolbar ---- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+#breadcrumbs {
+  font-size: 13px;
+}
+
+.crumb.link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.crumb-sep {
+  color: var(--text-muted);
+  margin: 0 6px;
+}
+
+.crumb.current {
+  color: var(--text-secondary);
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+button {
+  font: inherit;
+}
+
+#view-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+#view-toggle button {
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+#view-toggle button.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.icon-btn {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.icon-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.data-badge {
+  font-size: 11.5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.data-badge.live {
+  color: var(--up);
+  border-color: var(--up);
+}
+
+.data-badge.error {
+  color: var(--down);
+  border-color: var(--down);
+}
+
+/* ---- legend ---- */
+#legend {
+  margin: 4px 0 14px;
+}
+
+.legend-bar {
+  height: 8px;
+  border-radius: 4px;
+}
+
+.legend-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* ---- heatmap ---- */
+#heatmap {
+  position: relative;
+  width: 100%;
+  height: 520px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#heatmap.hidden,
+#table-wrap.hidden {
+  display: none;
+}
+
+.cell {
+  position: absolute;
+  padding: 6px 8px;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  outline-offset: -2px;
+}
+
+.cell:focus-visible {
+  outline: 2px solid var(--accent);
+}
+
+.cell:hover {
+  filter: brightness(1.06);
+}
+
+.cell-symbol {
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cell-sub {
+  font-size: 10.5px;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cell-change {
+  font-size: 13px;
+  font-weight: 700;
+  align-self: flex-end;
+}
+
+.cell-change.small {
+  font-size: 11px;
+  margin: auto;
+}
+
+/* ---- table ---- */
+#table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+#table-wrap th,
+#table-wrap td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--gridline);
+}
+
+#table-wrap th {
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+}
+
+#table-wrap td.num {
+  text-align: right;
+}
+
+.mono {
+  font-variant-numeric: tabular-nums;
+}
+
+#table-wrap td.up {
+  color: var(--up);
+}
+#table-wrap td.down {
+  color: var(--down);
+}
+
+footer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 32px;
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+
+@media (max-width: 640px) {
+  #heatmap {
+    height: 420px;
+  }
+}
